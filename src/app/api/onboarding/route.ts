@@ -18,7 +18,12 @@ export async function PUT(request: Request) {
     }
     const allowed = Object.fromEntries(onboardingFields.map((field) => [field.key, body.profile[field.key]]).filter(([, value]) => value !== undefined)) as StudentProfile;
     const student = await store.saveOnboarding(studentId, body.step, allowed);
-    return NextResponse.json({ student });
+    let registration = null;
+    if (body.step === 2) {
+      const webinar = await store.getPublicNextWebinar();
+      if (webinar) registration = await store.register(studentId, webinar.id);
+    }
+    return NextResponse.json({ student, registration });
   } catch (reason) {
     return NextResponse.json({ error: reason instanceof Error ? reason.message : "Unable to save onboarding" }, { status: 400 });
   }

@@ -22,7 +22,9 @@ export default defineConfig({
     env: {
       DEMO_MODE: "true",
       ALLOW_DEMO_OTP: "true",
-      SESSION_SECRET: "e2e-only-session-secret-with-32-characters"
+      SESSION_SECRET: "e2e-only-session-secret-with-32-characters",
+      ADMIN_USERNAME: "admin",
+      ADMIN_PASSWORD: "admin123"
     }
   }
 });

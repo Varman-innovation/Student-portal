@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, CalendarDays, CheckCircle2, Clock3, LogOut, Radio } from "lucide-react";
+import { ArrowUpRight, CalendarPlus, CalendarDays, CheckCircle2, Clock3, LogOut, Radio } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import type { Registration, Webinar } from "@/lib/domain";
+import { StudentFooter } from "@/components/student-footer";
+import { webinarPhase, type Registration, type Webinar } from "@/lib/domain";
 
 type WebinarData = { webinar: Webinar | null; registration: Registration | null };
 
@@ -13,6 +14,7 @@ export default function WebinarPage() {
   const [data, setData] = useState<WebinarData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     fetch("/api/webinars/next").then(async (response) => {
@@ -20,6 +22,8 @@ export default function WebinarPage() {
       if (response.status === 428) return router.replace("/onboarding");
       setData(await response.json());
     });
+    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(timer);
   }, [router]);
 
   async function register() {
@@ -50,22 +54,26 @@ export default function WebinarPage() {
     router.replace("/");
   }
 
-  if (!data) return <main><BrandHeader /><section className="app-page"><div className="app-container">Finding your next webinar…</div></section></main>;
+  if (!data) return <main><BrandHeader /><section className="app-page"><div className="app-container">Confirming your registration…</div></section></main>;
 
   if (!data.webinar) return (
-    <main><BrandHeader /><section className="app-page"><div className="app-container"><div className="content-card empty-state"><CalendarDays size={46} color="var(--navy)" style={{ margin: "0 auto 18px" }} /><h2>No upcoming webinar yet</h2><p className="subcopy">New sessions are being scheduled. Please check back shortly.</p><button className="secondary-btn" onClick={logout}><LogOut size={17} /> Log out</button></div></div></section></main>
+    <main><BrandHeader /><section className="app-page"><div className="app-container"><div className="content-card empty-state"><CalendarDays size={46} color="var(--navy)" style={{ margin: "0 auto 18px" }} /><h2>You’re on the list</h2><p className="subcopy">We’ll share the next session soon.</p><button className="secondary-btn" onClick={logout}><LogOut size={17} /> Log out</button></div></div></section><StudentFooter /></main>
   );
 
   const starts = new Date(data.webinar.starts_at);
+  const phase = webinarPhase(data.webinar, now);
   const date = new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long", timeZone: data.webinar.timezone }).format(starts);
-  const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: data.webinar.timezone }).format(starts);
+  const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: data.webinar.timezone, timeZoneName: "short" }).format(starts);
 
   return (
     <main>
       <BrandHeader />
       <section className="app-page">
         <div className="app-container">
-          <div className="page-head"><div><div className="eyebrow">Next available webinar</div><h1 className="page-title">Your session is ready.</h1><p>Reserve your place and return here when it’s time to join.</p></div><button className="secondary-btn" onClick={logout}><LogOut size={17} /> Log out</button></div>
+          <div className="page-head">
+            <div><div className="eyebrow">{data.registration ? "Seat confirmed" : "Final step"}</div><h1 className="page-title">{data.registration ? "You’re registered" : "Reserve your seat"}</h1><p>{data.registration ? "Add it to your calendar. Return 10 minutes before it starts." : "Confirm your free place."}</p></div>
+            <button className="secondary-btn" onClick={logout}><LogOut size={17} /> Log out</button>
+          </div>
           <div className="webinar-layout">
             <section className="webinar-visual">
               <span className="date-chip"><Radio size={15} /> Live masterclass</span>
@@ -73,21 +81,26 @@ export default function WebinarPage() {
               <p>{data.webinar.description}</p>
             </section>
             <section className="content-card registration-card">
-              {data.registration ? <span className="status-badge"><CheckCircle2 size={14} /> Registered</span> : <span className="eyebrow">Reserve your seat</span>}
+              {data.registration ? <span className="status-badge"><CheckCircle2 size={14} /> Registration confirmed</span> : <span className="eyebrow">Free student seat</span>}
               <p className="subcopy" style={{ marginBottom: 4 }}><CalendarDays size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 8 }} />{date}</p>
               <div className="time-display">{time}</div>
-              <p className="subcopy"><Clock3 size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 8 }} />{data.webinar.duration_minutes} minutes · {data.webinar.timezone}</p>
+              <p className="subcopy"><Clock3 size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 8 }} />{data.webinar.duration_minutes} minutes</p>
               {error ? <p className="error" role="alert">{error}</p> : null}
-              {data.registration ? (
-                <button className="primary-btn full-btn" onClick={join} disabled={loading}>{loading ? "Opening…" : <>Join webinar <ArrowUpRight size={18} /></>}</button>
+              {!data.registration ? (
+                <button className="primary-btn full-btn" onClick={register} disabled={loading}>{loading ? "Reserving…" : <>Reserve my free seat <ArrowUpRight size={18} /></>}</button>
+              ) : phase === "joinable" ? (
+                <button className="primary-btn full-btn" onClick={join} disabled={loading}>{loading ? "Opening…" : <>Join live masterclass <ArrowUpRight size={18} /></>}</button>
+              ) : phase === "upcoming" ? (
+                <a className="primary-btn full-btn" href={`/api/webinars/${data.webinar.id}/calendar`}><CalendarPlus size={18} /> Add to calendar</a>
               ) : (
-                <button className="primary-btn full-btn" onClick={register} disabled={loading}>{loading ? "Registering…" : <>Register for webinar <ArrowUpRight size={18} /></>}</button>
+                <p className="ended-note">This live session has ended. Your registration remains saved.</p>
               )}
-              <p style={{ color: "var(--muted)", fontSize: 12, lineHeight: 1.5, marginTop: 16 }}>Your join click is recorded before the meeting opens. Attendance is tracked separately in a future phase.</p>
+              {data.registration && phase === "upcoming" ? <p className="session-note">Join opens 10 minutes before start.</p> : null}
             </section>
           </div>
         </div>
       </section>
+      <StudentFooter />
     </main>
   );
 }

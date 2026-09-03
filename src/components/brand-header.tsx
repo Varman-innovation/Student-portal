@@ -9,7 +9,7 @@ export function BrandHeader() {
           VARMAN
           <small>INNOVATION LABS</small>
         </Link>
-        <Link href="/admin/login" className="admin-link">Admin</Link>
+        <Link href="/help" className="header-link">Need help?</Link>
       </header>
     </>
   );

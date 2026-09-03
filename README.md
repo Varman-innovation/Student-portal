@@ -11,6 +11,7 @@ Mobile-first student onboarding, webinar registration, recorded join clicks, and
 - Resumable profile state
 - Next eligible webinar, duplicate-safe registration, recorded join click
 - Admin funnel, student table, webinar creation
+- Protected admin-user registration with scrypt password hashing
 - Default local admin login `admin / admin123`
 - Supabase schema with RLS and transaction-safe registration/join functions
 - Netlify Next.js configuration
@@ -33,6 +34,8 @@ Open `http://localhost:3000`. In demo mode data is held by the running process a
 4. Set `DEMO_MODE=false`.
 
 The service-role key is server-only. Never expose it under a `NEXT_PUBLIC_` variable or commit `.env.local`.
+
+Signed-in administrators can create additional admin accounts at `/admin/register`. The API is available at `POST /api/admin/users` and requires an active admin session.
 
 ## Netlify deployment
 

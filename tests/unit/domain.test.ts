@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextStudentPath, normalizeIndianMobile, onboardingFields, percent, type Student } from "@/lib/domain";
+import { nextStudentPath, normalizeIndianMobile, onboardingFields, percent, webinarPhase, type Student } from "@/lib/domain";
 
 const baseStudent: Student = {
   id: "d2cbaf9d-cfe9-4529-94b6-389a5bf9740e",
@@ -23,12 +23,18 @@ describe("Indian mobile normalization", () => {
 });
 
 describe("onboarding configuration", () => {
-  it("contains exactly two ordered stages with required screenshot fields", () => {
+  it("contains two concise conversion stages", () => {
     expect(new Set(onboardingFields.map((field) => field.step))).toEqual(new Set([1, 2]));
-    expect(onboardingFields.map((field) => field.key)).toEqual(["full_name", "region", "language", "phone", "degree", "branch", "year_of_study"]);
-    expect(onboardingFields.every((field) => field.required)).toBe(true);
-    expect(onboardingFields.find((field) => field.key === "phone")?.readOnly).toBe(true);
+    expect(onboardingFields.map((field) => field.key)).toEqual(["full_name", "college_name", "language", "degree", "year_of_study", "primary_interest"]);
+    expect(onboardingFields.find((field) => field.key === "degree")?.required).toBe(false);
   });
+});
+
+describe("webinar access window", () => {
+  const webinar = { starts_at: "2026-09-03T12:00:00.000Z", duration_minutes: 60 };
+  it("keeps the meeting private before the access window", () => expect(webinarPhase(webinar, new Date("2026-09-03T11:49:59.000Z"))).toBe("upcoming"));
+  it("opens ten minutes before start", () => expect(webinarPhase(webinar, new Date("2026-09-03T11:50:00.000Z"))).toBe("joinable"));
+  it("closes thirty minutes after the scheduled end", () => expect(webinarPhase(webinar, new Date("2026-09-03T13:30:01.000Z"))).toBe("ended"));
 });
 
 describe("flow routing", () => {

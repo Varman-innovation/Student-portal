@@ -13,12 +13,14 @@ export type OnboardingField = {
 
 export type StudentProfile = {
   full_name?: string;
+  college_name?: string;
   region?: string;
   language?: string;
   phone?: string;
   degree?: string;
   branch?: string;
   year_of_study?: string;
+  primary_interest?: string;
 };
 
 export type Student = {
@@ -88,58 +90,50 @@ export type Funnel = {
 
 export const onboardingFields: OnboardingField[] = [
   { key: "full_name", label: "Full name", type: "text", step: 1, required: true, placeholder: "Enter your full name" },
-  {
-    key: "region",
-    label: "Region",
-    type: "select",
-    step: 1,
-    required: true,
-    options: ["Tamil Nadu", "Puducherry", "Karnataka", "Kerala", "Andhra Pradesh", "Telangana", "Other"]
-  },
+  { key: "college_name", label: "College or institution", type: "text", step: 1, required: true, placeholder: "Enter your college name" },
   {
     key: "language",
-    label: "Language",
+    label: "Preferred language",
     type: "select",
     step: 1,
     required: true,
     options: ["Tamil", "English", "Telugu", "Kannada", "Malayalam", "Hindi", "Other"]
   },
-  { key: "phone", label: "Phone number", type: "phone", step: 1, required: true, readOnly: true },
   {
     key: "degree",
-    label: "Degree",
+    label: "Degree (optional)",
     type: "select",
     step: 2,
-    required: true,
+    required: false,
     options: ["B.Tech / B.E", "B.Sc", "B.Com", "BBA", "BA", "Diploma", "MBA", "M.Tech", "Other"]
   },
   {
-    key: "branch",
-    label: "Branch",
+    key: "year_of_study",
+    label: "Year of study",
     type: "select",
     step: 2,
     required: true,
-    options: [
-      "Computer Science and Engineering (CSE)",
-      "Information Technology (IT)",
-      "Electronics and Communication (ECE)",
-      "Electrical and Electronics (EEE)",
-      "Mechanical Engineering",
-      "Civil Engineering",
-      "Commerce / Management",
-      "Arts / Science",
-      "Other"
-    ]
+    options: ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "Graduated", "Other"]
   },
   {
-    key: "year_of_study",
-    label: "Year of Study",
+    key: "primary_interest",
+    label: "What would you most like help with?",
     type: "select",
     step: 2,
     required: true,
-    options: ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "Graduated", "Others"]
+    options: ["Finding a startup idea", "Validating my idea", "Building an MVP", "Finding a team", "Launching and getting users", "Exploring entrepreneurship"]
   }
 ];
+
+export type WebinarPhase = "upcoming" | "joinable" | "ended";
+
+export function webinarPhase(webinar: Pick<Webinar, "starts_at" | "duration_minutes">, reference = new Date()): WebinarPhase {
+  const startsAt = new Date(webinar.starts_at).getTime();
+  const nowAt = reference.getTime();
+  if (nowAt < startsAt - 10 * 60 * 1000) return "upcoming";
+  if (nowAt <= startsAt + (webinar.duration_minutes + 30) * 60 * 1000) return "joinable";
+  return "ended";
+}
 
 export function normalizeIndianMobile(value: string) {
   const digits = value.replace(/\D/g, "");

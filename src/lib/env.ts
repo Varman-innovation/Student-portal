@@ -20,5 +20,6 @@ const parsed = z
 export const env = {
   ...parsed,
   demoMode: parsed.DEMO_MODE === "true" || !parsed.NEXT_PUBLIC_SUPABASE_URL || !parsed.SUPABASE_SERVICE_ROLE_KEY,
-  allowDemoOtp: parsed.ALLOW_DEMO_OTP === "true" || parsed.NODE_ENV !== "production"
+  allowDemoOtp: parsed.ALLOW_DEMO_OTP === "true" || parsed.NODE_ENV !== "production",
+  adminConfigured: parsed.NODE_ENV !== "production" || Boolean(process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD && process.env.SESSION_SECRET)
 };

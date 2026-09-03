@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, GraduationCap } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { StudentFooter } from "@/components/student-footer";
 import type { OnboardingField, Student, StudentProfile } from "@/lib/domain";
 
 export default function OnboardingPage() {
@@ -64,8 +65,6 @@ export default function OnboardingPage() {
 
   if (loading) return <main><BrandHeader /><section className="app-page"><div className="app-container">Loading your profile…</div></section></main>;
 
-  const initial = profile.full_name?.trim().charAt(0).toUpperCase() || student?.mobile.slice(-2) || "S";
-
   return (
     <main>
       <BrandHeader />
@@ -73,21 +72,18 @@ export default function OnboardingPage() {
         <div className="app-container">
           <div className="page-head">
             <div>
-              <div className="eyebrow">Tell us about yourself</div>
-              <h1 className="page-title">Your student profile</h1>
-              <p>Two short steps help us show the most relevant entrepreneurship opportunities.</p>
+              <div className="eyebrow">Step {step} of 2</div>
+              <h1 className="page-title">Complete your profile</h1>
+              <p>Help us tailor the live session.</p>
             </div>
             <div className="stepper" aria-label={`Step ${step} of 2`}>
               <span className={`step-dot ${step >= 1 ? "active" : ""}`}>1</span><span className="step-line" /><span className={`step-dot ${step === 2 ? "active" : ""}`}>2</span>
             </div>
           </div>
           <section className="form-card">
-            <div className="form-card-head">
-              <div className="avatar">{initial}</div>
-              <div style={{ textAlign: "right" }}><GraduationCap size={24} color="var(--navy)" /><div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>{step === 1 ? "Personal details" : "Education details"}</div></div>
-            </div>
-            <h2>{step === 1 ? "Personal details" : "Education details"}</h2>
-            <p className="subcopy" style={{ marginTop: 8 }}>{step === 1 ? "Start with your basic information and preferred language." : "Tell us where you are in your learning journey."}</p>
+            <div className="verified-contact"><CheckCircle2 size={18} /> Verified mobile <strong>{student?.mobile.replace(/(\+91)(\d{2})\d{4}(\d{4})/, "$1 $2••••$3")}</strong></div>
+            <h2>{step === 1 ? "About you" : "Your goals"}</h2>
+            <p className="subcopy" style={{ marginTop: 8 }}>{step === 1 ? "For your registration." : "Choose what fits you best."}</p>
             <div className="form-grid">
               {currentFields.map((field) => (
                 <div className="field" key={field.key}>
@@ -105,11 +101,12 @@ export default function OnboardingPage() {
             {error ? <p className="error" role="alert">{error}</p> : null}
             <div className="form-actions">
               {step === 2 ? <button type="button" className="secondary-btn" onClick={() => setStep(1)}><ArrowLeft size={18} /> Back</button> : <span />}
-              <button type="button" className="primary-btn" onClick={save} disabled={saving}>{saving ? "Saving…" : step === 1 ? <>Continue <ArrowRight size={18} /></> : <>Complete profile <ArrowRight size={18} /></>}</button>
+              <button type="button" className="primary-btn" onClick={save} disabled={saving}>{saving ? "Saving…" : step === 1 ? <>Continue <ArrowRight size={18} /></> : <>Confirm my seat <ArrowRight size={18} /></>}</button>
             </div>
           </section>
         </div>
       </section>
+      <StudentFooter />
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { onboardingFields, type ActivityEvent, type Funnel, type OnboardingField, type Registration, type Student, type StudentProfile, type Webinar } from "@/lib/domain";
 
 type Store = {
+  getPublicNextWebinar(): Promise<Webinar | null>;
   getOnboardingFields(): Promise<OnboardingField[]>;
   startLogin(mobile: string, attribution?: { source?: string; campaign?: string }): Promise<Student>;
   verifyStudent(studentId: string): Promise<Student>;
@@ -73,6 +74,13 @@ function seedDemoWebinar() {
 }
 
 const demoStore: Store = {
+  async getPublicNextWebinar() {
+    seedDemoWebinar();
+    const webinar = [...demoWebinars.values()]
+      .filter((item) => ["scheduled", "live"].includes(item.status) && new Date(item.starts_at).getTime() > Date.now() - 60 * 60 * 1000)
+      .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
+    return webinar ? structuredClone(webinar) : null;
+  },
   async getOnboardingFields() {
     return structuredClone(onboardingFields);
   },
@@ -202,18 +210,13 @@ function supabaseStore(client: SupabaseClient): Store {
     if (error) throw error;
   }
   return {
-    async getOnboardingFields() {
-      const result = await client.from("onboarding_questions").select("key,label,field_type,step,required,options").eq("form_version", 1).eq("enabled", true).order("step").order("position");
+    async getPublicNextWebinar() {
+      const result = await client.from("webinars").select("*").in("status", ["scheduled", "live"]).gte("starts_at", new Date(Date.now() - 3600000).toISOString()).order("starts_at").limit(1).maybeSingle();
       if (result.error) throw result.error;
-      return result.data.map((row) => ({
-        key: row.key as OnboardingField["key"],
-        label: row.label,
-        type: row.field_type as OnboardingField["type"],
-        step: row.step as 1 | 2,
-        required: row.required,
-        options: Array.isArray(row.options) ? row.options as string[] : undefined,
-        readOnly: row.field_type === "phone"
-      }));
+      return result.data as Webinar | null;
+    },
+    async getOnboardingFields() {
+      return structuredClone(onboardingFields);
     },
     async startLogin(mobile, attribution) {
       const existing = await client.from("students").select("*").eq("mobile", mobile).maybeSingle();

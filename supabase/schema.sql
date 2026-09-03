@@ -3,6 +3,17 @@
 
 create extension if not exists pgcrypto;
 
+create table if not exists public.admins (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null check (char_length(full_name) between 2 and 100),
+  email text not null unique check (email = lower(email)),
+  phone_number text not null check (phone_number ~ '^\+?[1-9][0-9]{7,14}$'),
+  password_hash text not null check (password_hash like 'scrypt$%'),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists admins_created_at_idx on public.admins (created_at desc);
+
 create table if not exists public.students (
   id uuid primary key default gen_random_uuid(),
   mobile text not null unique check (mobile ~ '^\+91[6-9][0-9]{9}$'),
@@ -76,6 +87,7 @@ create index if not exists events_student_timeline_idx on public.events (student
 create index if not exists events_type_time_idx on public.events (event_type, created_at desc);
 
 alter table public.students enable row level security;
+alter table public.admins enable row level security;
 alter table public.onboarding_questions enable row level security;
 alter table public.webinars enable row level security;
 alter table public.webinar_registrations enable row level security;
@@ -83,6 +95,7 @@ alter table public.events enable row level security;
 
 -- No anon/authenticated policies are intentionally created. The browser cannot access data directly.
 revoke all on public.students, public.onboarding_questions, public.webinars, public.webinar_registrations, public.events from anon, authenticated;
+revoke all on public.admins from anon, authenticated;
 
 create or replace function public.register_for_webinar(p_student_id uuid, p_webinar_id uuid)
 returns jsonb
@@ -153,13 +166,12 @@ grant execute on function public.record_webinar_join(uuid, uuid) to service_role
 insert into public.onboarding_questions (form_version, key, label, field_type, step, position, required, options)
 values
   (1, 'full_name', 'Full name', 'text', 1, 1, true, '[]'),
-  (1, 'region', 'Region', 'select', 1, 2, true, '["Tamil Nadu","Puducherry","Karnataka","Kerala","Andhra Pradesh","Telangana","Other"]'),
-  (1, 'language', 'Language', 'select', 1, 3, true, '["Tamil","English","Telugu","Kannada","Malayalam","Hindi","Other"]'),
-  (1, 'phone', 'Phone number', 'phone', 1, 4, true, '[]'),
-  (1, 'degree', 'Degree', 'select', 2, 1, true, '["B.Tech / B.E","B.Sc","B.Com","BBA","BA","Diploma","MBA","M.Tech","Other"]'),
-  (1, 'branch', 'Branch', 'select', 2, 2, true, '["Computer Science and Engineering (CSE)","Information Technology (IT)","Electronics and Communication (ECE)","Electrical and Electronics (EEE)","Mechanical Engineering","Civil Engineering","Commerce / Management","Arts / Science","Other"]'),
-  (1, 'year_of_study', 'Year of Study', 'select', 2, 3, true, '["1st Year","2nd Year","3rd Year","4th Year","5th Year","Graduated","Others"]')
-on conflict (form_version, key) do nothing;
+  (1, 'college_name', 'College or institution', 'text', 1, 2, true, '[]'),
+  (1, 'language', 'Preferred language', 'select', 1, 3, true, '["Tamil","English","Telugu","Kannada","Malayalam","Hindi","Other"]'),
+  (1, 'degree', 'Degree (optional)', 'select', 2, 1, false, '["B.Tech / B.E","B.Sc","B.Com","BBA","BA","Diploma","MBA","M.Tech","Other"]'),
+  (1, 'year_of_study', 'Year of study', 'select', 2, 2, true, '["1st Year","2nd Year","3rd Year","4th Year","5th Year","Graduated","Other"]'),
+  (1, 'primary_interest', 'What would you most like help with?', 'select', 2, 3, true, '["Finding a startup idea","Validating my idea","Building an MVP","Finding a team","Launching and getting users","Exploring entrepreneurship"]')
+on conflict (form_version, key) do update set label = excluded.label, field_type = excluded.field_type, step = excluded.step, position = excluded.position, required = excluded.required, options = excluded.options, enabled = true;
 
 insert into public.webinars (title, description, starts_at, duration_minutes, timezone, meeting_url, status)
 select 'Entrepreneurship Masterclass', 'A practical introduction to turning an idea into a scalable venture.', now() + interval '2 hours', 60, 'Asia/Kolkata', 'https://meet.google.com/', 'scheduled'

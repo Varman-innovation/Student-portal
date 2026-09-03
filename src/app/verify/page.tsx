@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, RefreshCcw } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { StudentFooter } from "@/components/student-footer";
 
-type Challenge = { studentId: string; mobile: string };
+type Challenge = { studentId: string; mobile: string; rawMobile?: string; pilotCode?: string };
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -13,6 +15,7 @@ export default function VerifyPage() {
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -63,15 +66,41 @@ export default function VerifyPage() {
     router.replace(data.nextPath);
   }
 
+  async function resend() {
+    if (!challenge?.rawMobile) return router.push("/");
+    setLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/auth/request", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mobile: challenge.rawMobile })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Unable to resend the code");
+      const next = { ...data, rawMobile: challenge.rawMobile };
+      sessionStorage.setItem("login_challenge", JSON.stringify(next));
+      setChallenge(next);
+      setDigits(["", "", "", ""]);
+      setNotice("A new verification code is ready.");
+      inputs.current[0]?.focus();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to resend the code");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main>
       <BrandHeader />
       <section className="app-page" style={{ display: "grid", placeItems: "center" }}>
         <div className="glass-card" style={{ boxShadow: "var(--shadow)" }}>
-          <div className="eyebrow">Mobile verification</div>
-          <h2>Enter your 4-digit code</h2>
-          <p className="subcopy">We sent a verification code to <strong>{challenge?.mobile ?? "your mobile"}</strong>.</p>
-          <div className="demo-note">For this MVP, use <strong>0000</strong>. WhatsApp OTP will replace this adapter later.</div>
+          <div className="eyebrow">Verify number</div>
+          <h2>Enter the code</h2>
+          <p className="subcopy">Sent to <strong>{challenge?.mobile ?? "your mobile"}</strong> · <Link href="/">Change</Link></p>
+          {challenge?.pilotCode ? <div className="demo-note">Access code: <strong>{challenge.pilotCode}</strong></div> : null}
           <form onSubmit={submit}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }} onPaste={paste}>
               {digits.map((digit, index) => (
@@ -90,11 +119,13 @@ export default function VerifyPage() {
               ))}
             </div>
             {error ? <p className="error" role="alert">{error}</p> : null}
-            <button className="primary-btn full-btn" disabled={loading || digits.some((digit) => !digit)}>{loading ? "Verifying…" : <>Verify & continue <ArrowRight size={18} /></>}</button>
-            <button type="button" className="secondary-btn full-btn" style={{ marginTop: 12 }} onClick={() => setDigits(["", "", "", ""])}><RotateCcw size={16} /> Clear code</button>
+            {notice ? <p className="success" role="status">{notice}</p> : null}
+            <button className="primary-btn full-btn" disabled={loading || digits.some((digit) => !digit)}>{loading ? "Verifying…" : <>Continue <ArrowRight size={18} /></>}</button>
+            <button type="button" className="secondary-btn full-btn" style={{ marginTop: 12 }} onClick={resend} disabled={loading}><RefreshCcw size={16} /> Resend code</button>
           </form>
         </div>
       </section>
+      <StudentFooter />
     </main>
   );
 }

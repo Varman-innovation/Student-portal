@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, CalendarPlus, ExternalLink, LayoutDashboard, LogOut, Pencil, RefreshCcw, Users, XCircle } from "lucide-react";
+import { BarChart3, CalendarPlus, ExternalLink, LayoutDashboard, LogOut, Pencil, RefreshCcw, ShieldPlus, Users, XCircle } from "lucide-react";
 import type { Funnel, Student, Webinar } from "@/lib/domain";
 import { percent } from "@/lib/domain";
 
@@ -70,11 +71,12 @@ export function AdminDashboard({ initialFunnel, initialStudents, initialWebinars
           <button className={tab === "dashboard" ? "active" : ""} onClick={() => setTab("dashboard")}><LayoutDashboard size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 9 }} />Dashboard</button>
           <button className={tab === "students" ? "active" : ""} onClick={() => setTab("students")}><Users size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 9 }} />Students</button>
           <button className={tab === "webinars" ? "active" : ""} onClick={() => setTab("webinars")}><BarChart3 size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 9 }} />Webinars</button>
+          <Link href="/admin/register"><ShieldPlus size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 9 }} />Add admin</Link>
         </nav>
         <div style={{ marginTop: "auto" }} className="admin-nav"><button onClick={logout}><LogOut size={17} style={{ display: "inline", verticalAlign: "-3px", marginRight: 9 }} />Log out</button></div>
       </aside>
       <section className="admin-main">
-        <div className="page-head"><div><div className="eyebrow">Conversion workspace</div><h1 className="page-title">{tab === "dashboard" ? "Funnel overview" : tab === "students" ? "Student records" : "Webinar management"}</h1><p>{demoMode ? "Local demo data resets when the development server restarts." : "Connected to Supabase production data."}</p></div><button className="secondary-btn" onClick={() => router.refresh()}><RefreshCcw size={16} /> Refresh</button></div>
+        <div className="page-head"><div><div className="eyebrow">Conversion workspace</div><h1 className="page-title">{tab === "dashboard" ? "Funnel overview" : tab === "students" ? "Student records" : "Webinar management"}</h1><p>{demoMode ? "Pilot workspace data" : "Live registration data"}</p></div><button className="secondary-btn" onClick={() => router.refresh()}><RefreshCcw size={16} /> Refresh</button></div>
 
         {tab === "dashboard" ? <>
           <div className="metric-grid">{metrics.map((metric) => <div className="metric" key={metric.label}><div className="metric-label">{metric.label}</div><div className="metric-value">{metric.value.toLocaleString("en-IN")}</div><div className="metric-rate">{metric.rate}</div></div>)}</div>
