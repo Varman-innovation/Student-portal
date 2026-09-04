@@ -1,8 +1,15 @@
+```tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarDays, Check, Clock3, RefreshCcw } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Clock3,
+  RefreshCcw,
+} from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { StudentFooter } from "@/components/student-footer";
 
@@ -36,38 +43,56 @@ function formatEventDate(webinar: PublicWebinar | null) {
 export default function HomePage() {
   const router = useRouter();
 
-  // Registration
+  // Mobile registration
   const [mobile, setMobile] = useState("");
 
-  // OTP
+  // OTP verification
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
 
-  // Common
+  // Page state
   const [step, setStep] = useState<"mobile" | "otp">("mobile");
+
+  // Webinar
   const [webinar, setWebinar] = useState<PublicWebinar | null>(null);
+
+  // Messages
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  // Loading
   const [loading, setLoading] = useState(false);
 
+  // ==========================================
+  // INITIAL PAGE LOAD
+  // ==========================================
+
   useEffect(() => {
-    fetch("/api/session").then(async (response) => {
-      if (response.ok) {
-        const data = await response.json();
+    // Check if user is already authenticated
+    fetch("/api/session")
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json();
 
-        if (data.nextPath) {
-          router.replace(data.nextPath);
+          if (data.nextPath) {
+            router.replace(data.nextPath);
+          }
         }
-      }
-    });
-
-    fetch("/api/webinars/public/next")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => setWebinar(data?.webinar ?? null))
+      })
       .catch(() => undefined);
 
-    // If an existing challenge is available, show OTP step.
+    // Load next webinar
+    fetch("/api/webinars/public/next")
+      .then((response) =>
+        response.ok ? response.json() : null
+      )
+      .then((data) => {
+        setWebinar(data?.webinar ?? null);
+      })
+      .catch(() => undefined);
+
+    // Check for an existing login challenge
     const raw = sessionStorage.getItem("login_challenge");
 
     if (raw) {
@@ -78,6 +103,10 @@ export default function HomePage() {
           setChallenge(savedChallenge);
           setMobile(savedChallenge.rawMobile ?? "");
           setStep("otp");
+
+          requestAnimationFrame(() => {
+            inputs.current[0]?.focus();
+          });
         }
       } catch {
         sessionStorage.removeItem("login_challenge");
@@ -85,9 +114,9 @@ export default function HomePage() {
     }
   }, [router]);
 
-  // =========================
-  // MOBILE REGISTRATION
-  // =========================
+  // ==========================================
+  // STEP 1 - MOBILE NUMBER
+  // ==========================================
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -97,7 +126,9 @@ export default function HomePage() {
     setLoading(true);
 
     try {
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(
+        window.location.search
+      );
 
       const response = await fetch("/api/auth/request", {
         method: "POST",
@@ -121,7 +152,8 @@ export default function HomePage() {
 
       if (!response.ok) {
         throw new Error(
-          data.error ?? "Unable to send your verification code"
+          data.error ??
+            "Unable to send your verification code"
         );
       }
 
@@ -130,16 +162,22 @@ export default function HomePage() {
         rawMobile: mobile,
       };
 
+      // Save challenge
       sessionStorage.setItem(
         "login_challenge",
         JSON.stringify(nextChallenge)
       );
 
+      // Store challenge in state
       setChallenge(nextChallenge);
+
+      // Clear previous OTP
       setDigits(["", "", "", ""]);
+
+      // Move to OTP step WITHOUT changing URL
       setStep("otp");
 
-      // Focus first OTP input after UI changes
+      // Focus first OTP input
       requestAnimationFrame(() => {
         inputs.current[0]?.focus();
       });
@@ -154,22 +192,30 @@ export default function HomePage() {
     }
   }
 
-  // =========================
-  // OTP INPUT
-  // =========================
+  // ==========================================
+  // OTP INPUT CHANGE
+  // ==========================================
 
   function change(index: number, value: string) {
-    const digit = value.replace(/\D/g, "").slice(-1);
+    const digit = value
+      .replace(/\D/g, "")
+      .slice(-1);
 
     const next = [...digits];
+
     next[index] = digit;
 
     setDigits(next);
 
+    // Move to next input automatically
     if (digit && index < 3) {
       inputs.current[index + 1]?.focus();
     }
   }
+
+  // ==========================================
+  // OTP BACKSPACE
+  // ==========================================
 
   function keyDown(
     index: number,
@@ -183,6 +229,10 @@ export default function HomePage() {
       inputs.current[index - 1]?.focus();
     }
   }
+
+  // ==========================================
+  // OTP PASTE
+  // ==========================================
 
   function paste(event: React.ClipboardEvent) {
     const code = event.clipboardData
@@ -199,14 +249,19 @@ export default function HomePage() {
     }
   }
 
-  // =========================
-  // VERIFY OTP
-  // =========================
+  // ==========================================
+  // STEP 2 - VERIFY OTP
+  // ==========================================
 
   async function verifyOtp(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!challenge) return;
+    if (!challenge) {
+      setError(
+        "Your verification session has expired. Please enter your mobile number again."
+      );
+      return;
+    }
 
     setError("");
     setNotice("");
@@ -227,23 +282,29 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error ?? "Verification failed");
+        setError(
+          data.error ?? "Verification failed"
+        );
         return;
       }
 
+      // Verification successful
       sessionStorage.removeItem("login_challenge");
 
+      // Use existing backend redirect
       router.replace(data.nextPath);
     } catch {
-      setError("Unable to verify the code. Please try again.");
+      setError(
+        "Unable to verify the code. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  // =========================
+  // ==========================================
   // RESEND OTP
-  // =========================
+  // ==========================================
 
   async function resend() {
     if (!challenge?.rawMobile) {
@@ -270,7 +331,8 @@ export default function HomePage() {
 
       if (!response.ok) {
         throw new Error(
-          data.error ?? "Unable to resend the code"
+          data.error ??
+            "Unable to resend the code"
         );
       }
 
@@ -279,15 +341,24 @@ export default function HomePage() {
         rawMobile: challenge.rawMobile,
       };
 
+      // Update session
       sessionStorage.setItem(
         "login_challenge",
         JSON.stringify(nextChallenge)
       );
 
+      // Update state
       setChallenge(nextChallenge);
-      setDigits(["", "", "", ""]);
-      setNotice("A new verification code is ready.");
 
+      // Clear OTP
+      setDigits(["", "", "", ""]);
+
+      // Show message
+      setNotice(
+        "A new verification code is ready."
+      );
+
+      // Focus first OTP box
       requestAnimationFrame(() => {
         inputs.current[0]?.focus();
       });
@@ -302,18 +373,24 @@ export default function HomePage() {
     }
   }
 
-  // =========================
+  // ==========================================
   // CHANGE MOBILE NUMBER
-  // =========================
+  // ==========================================
 
   function changeNumber() {
     setStep("mobile");
+
     setChallenge(null);
+
     setDigits(["", "", "", ""]);
+
     setError("");
+
     setNotice("");
 
-    sessionStorage.removeItem("login_challenge");
+    sessionStorage.removeItem(
+      "login_challenge"
+    );
   }
 
   return (
@@ -321,6 +398,10 @@ export default function HomePage() {
       <BrandHeader />
 
       <section className="hero-shell">
+        {/* =====================================
+            LEFT SIDE - HERO
+        ====================================== */}
+
         <div className="hero-copy">
           <div className="eyebrow">
             Free live student masterclass
@@ -329,8 +410,8 @@ export default function HomePage() {
           <h1>Build your startup idea.</h1>
 
           <p>
-            Validate it, shape your MVP, and leave with a clear
-            next step—in 60 minutes.
+            Validate it, shape your MVP, and leave
+            with a clear next step—in 60 minutes.
           </p>
 
           <div
@@ -338,15 +419,18 @@ export default function HomePage() {
             aria-label="Masterclass highlights"
           >
             <span className="hero-pill">
-              <Check size={15} /> Live
+              <Check size={15} />
+              Live
             </span>
 
             <span className="hero-pill">
-              <Check size={15} /> Practical
+              <Check size={15} />
+              Practical
             </span>
 
             <span className="hero-pill">
-              <Check size={15} /> Free
+              <Check size={15} />
+              Free
             </span>
           </div>
 
@@ -359,7 +443,9 @@ export default function HomePage() {
                   "Student Entrepreneurship Masterclass"}
               </strong>
 
-              <span>{formatEventDate(webinar)}</span>
+              <span>
+                {formatEventDate(webinar)}
+              </span>
             </div>
 
             <div>
@@ -369,12 +455,16 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* =====================================
+            RIGHT SIDE - REGISTRATION CARD
+        ====================================== */}
+
         <div className="login-panel">
           <div className="glass-card">
 
-            {/* =====================================
-                STEP 1 - MOBILE NUMBER
-            ===================================== */}
+            {/* =================================
+                STEP 1 - REGISTER
+            ================================== */}
 
             {step === "mobile" && (
               <>
@@ -385,18 +475,23 @@ export default function HomePage() {
                 <h2>Register</h2>
 
                 <p className="subcopy">
-                  Enter your mobile number to continue.
+                  Enter your mobile number to
+                  continue.
                 </p>
 
                 <form onSubmit={submit}>
                   <div className="field">
                     <label htmlFor="mobile">
                       Mobile number{" "}
-                      <span className="required">*</span>
+                      <span className="required">
+                        *
+                      </span>
                     </label>
 
                     <div className="input-wrap">
-                      <span className="prefix">+91</span>
+                      <span className="prefix">
+                        +91
+                      </span>
 
                       <input
                         id="mobile"
@@ -407,7 +502,9 @@ export default function HomePage() {
                         placeholder="98765 43210"
                         value={mobile}
                         onChange={(event) =>
-                          setMobile(event.target.value)
+                          setMobile(
+                            event.target.value
+                          )
                         }
                         maxLength={14}
                         required
@@ -418,15 +515,19 @@ export default function HomePage() {
                       id="mobile-help"
                       className="field-help"
                     >
-                      For verification and session updates.
+                      For verification and session
+                      updates.
                     </span>
                   </div>
 
-                  {error && (
-                    <p className="error" role="alert">
+                  {error ? (
+                    <p
+                      className="error"
+                      role="alert"
+                    >
                       {error}
                     </p>
-                  )}
+                  ) : null}
 
                   <button
                     className="primary-btn full-btn"
@@ -436,7 +537,7 @@ export default function HomePage() {
                       "Sending…"
                     ) : (
                       <>
-                        Get my code{" "}
+                        Get my code
                         <ArrowRight size={18} />
                       </>
                     )}
@@ -454,9 +555,9 @@ export default function HomePage() {
               </>
             )}
 
-            {/* =====================================
-                STEP 2 - OTP VERIFICATION
-            ===================================== */}
+            {/* =================================
+                STEP 2 - OTP
+            ================================== */}
 
             {step === "otp" && (
               <>
@@ -469,7 +570,8 @@ export default function HomePage() {
                 <p className="subcopy">
                   Sent to{" "}
                   <strong>
-                    {challenge?.mobile ?? "your mobile"}
+                    {challenge?.mobile ??
+                      "your mobile"}
                   </strong>{" "}
                   ·{" "}
                   <button
@@ -489,12 +591,14 @@ export default function HomePage() {
                   </button>
                 </p>
 
-                {challenge?.pilotCode && (
+                {challenge?.pilotCode ? (
                   <div className="demo-note">
                     Access code:{" "}
-                    <strong>{challenge.pilotCode}</strong>
+                    <strong>
+                      {challenge.pilotCode}
+                    </strong>
                   </div>
-                )}
+                ) : null}
 
                 <form onSubmit={verifyOtp}>
                   <div
@@ -506,61 +610,71 @@ export default function HomePage() {
                     }}
                     onPaste={paste}
                   >
-                    {digits.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(element) => {
-                          inputs.current[index] =
-                            element;
-                        }}
-                        aria-label={`OTP digit ${
-                          index + 1
-                        }`}
-                        className="input"
-                        style={{
-                          height: 64,
-                          textAlign: "center",
-                          fontSize: 26,
-                          fontWeight: 750,
-                          border:
-                            "1px solid var(--line)",
-                          borderRadius: 14,
-                          background: "white",
-                        }}
-                        inputMode="numeric"
-                        autoComplete={
-                          index === 0
-                            ? "one-time-code"
-                            : "off"
-                        }
-                        value={digit}
-                        onChange={(event) =>
-                          change(
-                            index,
-                            event.target.value
-                          )
-                        }
-                        onKeyDown={(event) =>
-                          keyDown(index, event)
-                        }
-                      />
-                    ))}
+                    {digits.map(
+                      (digit, index) => (
+                        <input
+                          key={index}
+                          ref={(element) => {
+                            inputs.current[
+                              index
+                            ] = element;
+                          }}
+                          aria-label={`OTP digit ${
+                            index + 1
+                          }`}
+                          className="input"
+                          style={{
+                            height: 64,
+                            textAlign: "center",
+                            fontSize: 26,
+                            fontWeight: 750,
+                            border:
+                              "1px solid var(--line)",
+                            borderRadius: 14,
+                            background:
+                              "white",
+                          }}
+                          inputMode="numeric"
+                          autoComplete={
+                            index === 0
+                              ? "one-time-code"
+                              : "off"
+                          }
+                          value={digit}
+                          onChange={(event) =>
+                            change(
+                              index,
+                              event.target.value
+                            )
+                          }
+                          onKeyDown={(event) =>
+                            keyDown(
+                              index,
+                              event
+                            )
+                          }
+                        />
+                      )
+                    )}
                   </div>
 
-                  {error && (
-                    <p className="error" role="alert">
+                  {error ? (
+                    <p
+                      className="error"
+                      role="alert"
+                    >
                       {error}
                     </p>
-                  )}
+                  ) : null}
 
-                  {notice && (
+                  {notice ? (
                     <p
                       className="success"
                       role="status"
                     >
                       {notice}
                     </p>
-                  )}
+                  ) : null}
 
                   <button
                     className="primary-btn full-btn"
@@ -575,7 +689,7 @@ export default function HomePage() {
                       "Verifying…"
                     ) : (
                       <>
-                        Continue{" "}
+                        Continue
                         <ArrowRight size={18} />
                       </>
                     )}
@@ -584,11 +698,14 @@ export default function HomePage() {
                   <button
                     type="button"
                     className="secondary-btn full-btn"
-                    style={{ marginTop: 12 }}
+                    style={{
+                      marginTop: 12,
+                    }}
                     onClick={resend}
                     disabled={loading}
                   >
-                    <RefreshCcw size={16} /> Resend code
+                    <RefreshCcw size={16} />
+                    Resend code
                   </button>
                 </form>
               </>
@@ -601,3 +718,5 @@ export default function HomePage() {
     </main>
   );
 }
+```
+
