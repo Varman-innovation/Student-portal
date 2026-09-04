@@ -1,0 +1,197 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-deep: var(--accent-deep);
+  --font-sans: var(--font-geist-sans);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #f6f8f1;
+  --foreground: #0d162a;
+  --card: #ffffff;
+  --card-foreground: #0d162a;
+  --popover: #ffffff;
+  --popover-foreground: #0d162a;
+  --primary: #0d162a;
+  --primary-foreground: #ffffff;
+  --secondary: #edf1e6;
+  --secondary-foreground: #0d162a;
+  --muted: #edf1e6;
+  --muted-foreground: #5f685c;
+  --border: #dce2d6;
+  --input: #dce2d6;
+  --ring: #6f9400;
+  --ink: #0d162a;
+  --accent: #c8f63b;
+  --accent-strong: #dcff69;
+  --accent-deep: #587a00;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  text-decoration: none;
+}
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+::selection {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.nav-link {
+  position: relative;
+  font-size: 0.875rem;
+  font-weight: 750;
+  color: color-mix(in srgb, var(--ink) 66%, transparent);
+  transition: color 180ms ease;
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+.nav-link::after {
+  position: absolute;
+  right: 0;
+  bottom: -0.45rem;
+  left: 0;
+  height: 2px;
+  content: '';
+  background: var(--accent-deep);
+  transform: scaleX(0);
+  transition: transform 180ms ease;
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.section-title {
+  margin-top: 0.75rem;
+  max-width: 56rem;
+  font-size: clamp(2.4rem, 5vw, 4.75rem);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  color: var(--ink);
+}
+
+.form-input {
+  height: 3rem;
+  border-radius: 0.75rem;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: #fff;
+  padding-inline: 0.8rem;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.form-input:focus-visible {
+  border-color: var(--accent);
+  --tw-ring-color: rgba(200, 246, 59, 0.45);
+}
+
+.path-card {
+  display: flex;
+  min-height: 5.25rem;
+  align-items: center;
+  gap: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.055);
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease;
+}
+.path-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+}
+.path-icon {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.9rem;
+  background: var(--accent);
+  color: var(--ink);
+}
+.path-card[data-tone='blue'] .path-icon {
+  background: #7dd3fc;
+}
+.path-card[data-tone='coral'] .path-icon {
+  background: #fda68a;
+}
+.path-card[data-tone='violet'] .path-icon {
+  background: #c4b5fd;
+}
+.path-card[data-tone='yellow'] .path-icon {
+  background: #fde36f;
+}
+.path-card[data-tone='mint'] .path-icon {
+  background: #7de6c5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
