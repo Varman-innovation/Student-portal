@@ -7,7 +7,7 @@ import {
   type RegistrationPayload,
 } from '@/lib/registration';
 
-const upstreamUrl = 'https://varman-student-portal.netlify.app/api/auth/verify';
+const upstreamUrl = 'http://localhost:3001/api/auth/verify';
 
 export async function POST(request: Request) {
   try {
@@ -46,12 +46,12 @@ export async function POST(request: Request) {
       await database
         .prepare(`
         INSERT INTO webinar_registrations
-          (first_name, email, phone, upstream_student_id, source, campaign, created_at)
+          (first_name, phone, upstream_student_id, source, campaign, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
         .bind(
           registration.firstName,
-          registration.email,
+          
           registration.phone,
           studentId,
           registration.source ?? null,

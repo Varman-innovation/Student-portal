@@ -159,11 +159,11 @@ input {
 }
 .path-icon {
   display: grid;
-  width: 2.7rem;
-  height: 2.7rem;
+  width: 4rem;
+  height: 4rem;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   background: var(--accent);
   color: var(--ink);
 }

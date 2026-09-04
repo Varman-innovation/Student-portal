@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/input';
 
 type FormFields = {
   firstName: string;
-  email: string;
+
   phone: string;
 };
 type Challenge = {
@@ -38,7 +38,7 @@ type Challenge = {
 
 const initialFields: FormFields = {
   firstName: '',
-  email: '',
+ 
   phone: '',
 };
 
@@ -122,8 +122,7 @@ export default function Home() {
 
   function validateDetails() {
     if (!fields.firstName.trim()) return 'Enter your name.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim()))
-      return 'Enter a valid email address.';
+   
     if (!/^[6-9]\d{9}$/.test(phoneDigits))
       return 'Enter a valid 10-digit Indian mobile number.';
     return '';
@@ -419,19 +418,7 @@ export default function Home() {
                         />
                       </Field>
                     </div>
-                    <Field label="Email" htmlFor="email">
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        inputMode="email"
-                        autoComplete="email"
-                        value={fields.email}
-                        onChange={(e) => updateField('email', e.target.value)}
-                        className="form-input"
-                        required
-                      />
-                    </Field>
+                    
                     <Field label="Phone Number" htmlFor="phone">
                       <div className="flex overflow-hidden rounded-xl border border-white/15 bg-white">
                         <span className="grid h-12 place-items-center border-r border-ink/10 px-3 text-sm font-bold text-ink/60">
@@ -443,7 +430,7 @@ export default function Home() {
                           type="tel"
                           inputMode="numeric"
                           autoComplete="tel"
-                          placeholder="98765 43210"
+                          placeholder="Mobile No"
                           maxLength={14}
                           value={fields.phone}
                           onChange={(e) => updateField('phone', e.target.value)}
@@ -607,8 +594,8 @@ export default function Home() {
                       : "You're registered!"}
                   </h2>
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/60">
-                    Webinar and session details will be shared through the email
-                    address and mobile number you provided.
+                    Webinar and session details will be shared through the 
+                     mobile number you provided.
                   </p>
                 </output>
               )}
