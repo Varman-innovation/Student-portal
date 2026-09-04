@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "178ea3ee-9845-4d1b-a3bf-46de91f08fc5",
+  "id": "7a723cb6-eac2-4a56-bcc9-6e8163067d4d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "webinar_registrations": {
@@ -16,13 +16,6 @@
         },
         "first_name": {
           "name": "first_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "email": {
-          "name": "email",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -65,13 +58,6 @@
         }
       },
       "indexes": {
-        "idx_webinar_registrations_email": {
-          "name": "idx_webinar_registrations_email",
-          "columns": [
-            "email"
-          ],
-          "isUnique": true
-        },
         "idx_webinar_registrations_phone": {
           "name": "idx_webinar_registrations_phone",
           "columns": [

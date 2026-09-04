@@ -140,18 +140,20 @@ input {
 
 .path-card {
   display: flex;
-  min-height: 5.25rem;
-  align-items: center;
-  gap: 0.9rem;
+  min-height: 8rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.25rem;
-  padding: 1rem;
+  padding: 1.25rem;
   background: rgba(255, 255, 255, 0.055);
   transition:
     transform 220ms ease,
     border-color 220ms ease,
     background 220ms ease;
 }
+
 .path-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.24);
@@ -159,11 +161,13 @@ input {
 }
 .path-icon {
   display: grid;
-  width: 4rem;
-  height: 4rem;
-  flex: 0 0 auto;
+  width: 5.5rem;
+  height: 5.5rem;
+  min-width: 5.5rem;
+  min-height: 5.5rem;
+  flex: 0 0 5.5rem;
   place-items: center;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   background: var(--accent);
   color: var(--ink);
 }

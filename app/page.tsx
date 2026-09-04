@@ -38,7 +38,7 @@ type Challenge = {
 
 const initialFields: FormFields = {
   firstName: '',
- 
+
   phone: '',
 };
 
@@ -122,7 +122,7 @@ export default function Home() {
 
   function validateDetails() {
     if (!fields.firstName.trim()) return 'Enter your name.';
-   
+
     if (!/^[6-9]\d{9}$/.test(phoneDigits))
       return 'Enter a valid 10-digit Indian mobile number.';
     return '';
@@ -240,32 +240,17 @@ export default function Home() {
         <div className="mx-auto flex h-[4.5rem] max-w-[90rem] items-center justify-between px-5 sm:px-8 lg:px-12">
           <a
             href="#top"
-            aria-label="Varman and VIIV career webinar home"
+            aria-label="VIIV career webinar home"
             className="flex items-center gap-3"
           >
-            <span className="relative h-8 w-28 overflow-hidden sm:w-32">
-              <Image
-                src="/varman-logo-light.webp"
-                alt="Varman Innovation Labs"
-                fill
-                sizes="(min-width: 640px) 128px, 112px"
-                className="scale-[1.7] object-cover"
-                priority
-              />
-            </span>
-            <span className="text-white/35" aria-hidden="true">
-              ×
-            </span>
-            <span className="rounded-full bg-white px-2.5 py-1">
-              <Image
-                src="/viiv-logo.webp"
-                alt="VIIV"
-                width={640}
-                height={167}
-                className="h-5 w-auto object-contain"
-                priority
-              />
-            </span>
+            <Image
+              src="/viiv-crest.png"
+              alt="VIIV"
+              width={2000}
+              height={2000}
+              className="h-14 w-14 object-contain"
+              priority
+            />
           </a>
 
           <nav
@@ -418,7 +403,7 @@ export default function Home() {
                         />
                       </Field>
                     </div>
-                    
+
                     <Field label="Phone Number" htmlFor="phone">
                       <div className="flex overflow-hidden rounded-xl border border-white/15 bg-white">
                         <span className="grid h-12 place-items-center border-r border-ink/10 px-3 text-sm font-bold text-ink/60">
@@ -594,8 +579,8 @@ export default function Home() {
                       : "You're registered!"}
                   </h2>
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/60">
-                    Webinar and session details will be shared through the 
-                     mobile number you provided.
+                    Webinar and session details will be shared through the
+                    mobile number you provided.
                   </p>
                 </output>
               )}
@@ -817,17 +802,14 @@ export default function Home() {
       <footer className="border-t border-ink/10 bg-white px-5 py-8 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[90rem] flex-col gap-5 text-sm text-ink/55 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-black tracking-[-0.03em] text-ink">
-              VARMAN
-            </span>
-            <span className="h-5 w-px bg-ink/20" />
             <Image
-              src="/viiv-logo.webp"
+              src="/viiv-crest.png"
               alt="VIIV"
-              width={640}
-              height={167}
-              className="h-7 w-auto"
+              width={2000}
+              height={2000}
+              className="h-12 w-12 object-contain"
             />
+            <span className="font-black tracking-[-0.03em] text-ink">VIIV</span>
           </div>
           <p>Career guidance webinar for students and parents.</p>
           <a

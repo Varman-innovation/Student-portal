@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
-import { getRegistrationDatabase } from '@/db';
 import {
   normalizeRegistration,
   validateRegistration,
   type RegistrationPayload,
 } from '@/lib/registration';
 
-const upstreamUrl = 'http://localhost:3001/api/auth/verify';
+const upstreamUrl = 'https://varman-student-portal.netlify.app/api/auth/verify';
 
 export async function POST(request: Request) {
   try {
@@ -41,34 +40,7 @@ export async function POST(request: Request) {
     if (!upstream.ok)
       return NextResponse.json(upstreamResult, { status: upstream.status });
 
-    const database = getRegistrationDatabase();
-    try {
-      await database
-        .prepare(`
-        INSERT INTO webinar_registrations
-          (first_name, phone, upstream_student_id, source, campaign, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-        .bind(
-          registration.firstName,
-          
-          registration.phone,
-          studentId,
-          registration.source ?? null,
-          registration.campaign ?? null,
-          new Date().toISOString(),
-        )
-        .run();
-      return NextResponse.json({ registered: true });
-    } catch (databaseError) {
-      if (
-        databaseError instanceof Error &&
-        /unique|constraint/i.test(databaseError.message)
-      ) {
-        return NextResponse.json({ registered: true, duplicate: true });
-      }
-      throw databaseError;
-    }
+    return NextResponse.json({ registered: true });
   } catch {
     return NextResponse.json(
       { error: 'Registration could not be completed. Please try again.' },

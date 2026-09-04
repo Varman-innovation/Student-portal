@@ -10,15 +10,11 @@ export const webinarRegistrations = sqliteTable(
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     firstName: text('first_name').notNull(),
-    email: text('email').notNull(),
     phone: text('phone').notNull(),
     upstreamStudentId: text('upstream_student_id').notNull(),
     source: text('source'),
     campaign: text('campaign'),
     createdAt: text('created_at').notNull(),
   },
-  (table) => [
-    uniqueIndex('idx_webinar_registrations_email').on(table.email),
-    uniqueIndex('idx_webinar_registrations_phone').on(table.phone),
-  ],
+  (table) => [uniqueIndex('idx_webinar_registrations_phone').on(table.phone)],
 );
