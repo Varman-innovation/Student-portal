@@ -27,7 +27,6 @@ import { Input } from '@/components/ui/input';
 
 type FormFields = {
   firstName: string;
-  lastName: string;
   email: string;
   phone: string;
 };
@@ -39,7 +38,6 @@ type Challenge = {
 
 const initialFields: FormFields = {
   firstName: '',
-  lastName: '',
   email: '',
   phone: '',
 };
@@ -123,8 +121,7 @@ export default function Home() {
   }
 
   function validateDetails() {
-    if (!fields.firstName.trim() || !fields.lastName.trim())
-      return 'Enter your first and last name.';
+    if (!fields.firstName.trim()) return 'Enter your name.';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim()))
       return 'Enter a valid email address.';
     if (!/^[6-9]\d{9}$/.test(phoneDigits))
@@ -240,25 +237,36 @@ export default function Home() {
       id="top"
       className="min-h-screen overflow-x-hidden bg-background text-foreground"
     >
-      <header className="sticky top-0 z-40 border-b border-ink/10 bg-[#fbfcf7]/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 text-white backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-[90rem] items-center justify-between px-5 sm:px-8 lg:px-12">
           <a
             href="#top"
             aria-label="Varman and VIIV career webinar home"
             className="flex items-center gap-3"
           >
-            <span className="text-lg font-black tracking-[-0.045em] text-ink">
-              VARMAN
+            <span className="relative h-8 w-28 overflow-hidden sm:w-32">
+              <Image
+                src="/varman-logo-light.webp"
+                alt="Varman Innovation Labs"
+                fill
+                sizes="(min-width: 640px) 128px, 112px"
+                className="scale-[1.7] object-cover"
+                priority
+              />
             </span>
-            <span className="h-6 w-px bg-ink/20" aria-hidden="true" />
-            <Image
-              src="/viiv-logo.webp"
-              alt="VIIV"
-              width={640}
-              height={167}
-              className="h-8 w-auto object-contain"
-              priority
-            />
+            <span className="text-white/35" aria-hidden="true">
+              ×
+            </span>
+            <span className="rounded-full bg-white px-2.5 py-1">
+              <Image
+                src="/viiv-logo.webp"
+                alt="VIIV"
+                width={640}
+                height={167}
+                className="h-5 w-auto object-contain"
+                priority
+              />
+            </span>
           </a>
 
           <nav
@@ -286,7 +294,7 @@ export default function Home() {
           </nav>
 
           <details className="group relative md:hidden">
-            <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-full border border-ink/15 bg-white text-ink [&::-webkit-details-marker]:hidden">
+            <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-full border border-white/15 bg-white/10 text-white [&::-webkit-details-marker]:hidden">
               <Menu className="h-5 w-5 group-open:hidden" aria-hidden="true" />
               <X
                 className="hidden h-5 w-5 group-open:block"
@@ -296,14 +304,14 @@ export default function Home() {
             </summary>
             <nav
               aria-label="Mobile navigation"
-              className="absolute right-0 top-14 w-64 rounded-2xl border border-ink/10 bg-white p-3 shadow-2xl"
+              className="absolute right-0 top-14 w-64 rounded-2xl border border-white/10 bg-ink p-3 shadow-2xl"
             >
               {['Webinar', 'Why Attend', 'Career Paths', 'Register'].map(
                 (item) => (
                   <a
                     key={item}
                     href={`#${item.toLowerCase().replace(' ', '-')}`}
-                    className="block rounded-xl px-4 py-3 text-sm font-bold text-ink hover:bg-muted"
+                    className="block rounded-xl px-4 py-3 text-sm font-bold text-white hover:bg-white/10"
                   >
                     {item}
                   </a>
@@ -314,23 +322,33 @@ export default function Home() {
         </div>
       </header>
 
-      <section id="webinar" className="relative isolate border-b border-ink/10">
-        <div className="pointer-events-none absolute inset-0 -z-20 bg-[linear-gradient(to_right,rgba(13,22,42,.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(13,22,42,.055)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_92%)]" />
-        <div className="pointer-events-none absolute -left-24 top-16 -z-10 h-80 w-80 rounded-full bg-accent/35 blur-[90px]" />
+      <section
+        id="webinar"
+        className="relative isolate overflow-hidden border-b border-white/10 bg-ink text-white"
+      >
+        <Image
+          src="/varman-campus.webp"
+          alt="Varman Innovation Labs campus in Navalur, Chennai"
+          fill
+          sizes="100vw"
+          className="-z-30 object-cover"
+          priority
+        />
+        <div className="pointer-events-none absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(9,25,43,.97)_0%,rgba(9,25,43,.91)_46%,rgba(9,25,43,.72)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(246,185,59,.20),transparent_36%)]" />
         <div className="mx-auto grid max-w-[90rem] gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1.08fr_.82fr] lg:items-start lg:gap-16 lg:px-12 lg:py-20">
           <div className="lg:pt-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-ink shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/15 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-white backdrop-blur">
               <span
-                className="h-2 w-2 rounded-full bg-accent-deep"
+                className="h-2 w-2 rounded-full bg-accent"
                 aria-hidden="true"
               />
               Free career guidance webinar
             </div>
-            <h1 className="mt-6 max-w-4xl text-[clamp(3.15rem,7.3vw,7.2rem)] font-black leading-[0.87] tracking-[-0.072em] text-ink">
-              What&apos;s Next{' '}
-              <span className="text-accent-deep">After 12th?</span>
+            <h1 className="mt-6 max-w-4xl text-[clamp(3.15rem,7.3vw,7.2rem)] font-black leading-[0.87] tracking-[-0.072em] text-white">
+              What&apos;s Next <span className="text-accent">After 12th?</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base font-medium leading-7 text-ink/65 sm:text-xl sm:leading-8">
+            <p className="mt-7 max-w-2xl text-base font-medium leading-7 text-white/70 sm:text-xl sm:leading-8">
               Explore career paths, modern degrees, entrepreneurship, AI and
               practical opportunities — and understand which direction could be
               right for you.
@@ -338,43 +356,24 @@ export default function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
                 onClick={scrollToRegistration}
-                className="h-14 rounded-full bg-ink px-7 text-base font-extrabold text-white hover:bg-ink/90"
+                className="h-14 rounded-full bg-accent px-7 text-base font-extrabold text-ink hover:bg-accent-strong"
               >
                 Register for the Webinar <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
               <a
                 href="#career-paths"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-ink/20 bg-white px-7 text-base font-extrabold text-ink transition hover:bg-muted"
+                className="inline-flex h-14 items-center justify-center rounded-full border border-white/20 bg-white/10 px-7 text-base font-extrabold text-white backdrop-blur transition hover:bg-white/15"
               >
                 Explore Career Paths <ArrowDown className="ml-2 h-4 w-4" />
               </a>
             </div>
 
-            <div className="mt-10 overflow-hidden rounded-[1.75rem] border border-ink/10 bg-ink p-2 shadow-[0_24px_80px_rgba(13,22,42,.14)] sm:p-3">
-              <div className="relative min-h-56 overflow-hidden rounded-[1.35rem] sm:min-h-72">
-                <Image
-                  src="/viiv-classroom.webp"
-                  alt="Students collaborating in a classroom at VIIV Chennai"
-                  fill
-                  sizes="(min-width: 1024px) 55vw, 100vw"
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/15 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-5 p-5 text-white sm:p-7">
-                  <div>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent">
-                      From uncertainty to direction
-                    </p>
-                    <p className="mt-1 max-w-lg text-lg font-bold leading-snug sm:text-2xl">
-                      A practical conversation about the choices ahead.
-                    </p>
-                  </div>
-                  <span className="hidden rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur sm:block">
-                    Chennai
-                  </span>
-                </div>
-              </div>
+            <div className="mt-10 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-white/75 backdrop-blur">
+              <span
+                className="h-2 w-2 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+              Varman × VIIV · Chennai
             </div>
           </div>
 
@@ -405,8 +404,8 @@ export default function Home() {
                     noValidate
                     className="mt-6 space-y-4"
                   >
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="First Name" htmlFor="first-name">
+                    <div>
+                      <Field label="Name" htmlFor="first-name">
                         <Input
                           id="first-name"
                           name="firstName"
@@ -414,19 +413,6 @@ export default function Home() {
                           value={fields.firstName}
                           onChange={(e) =>
                             updateField('firstName', e.target.value)
-                          }
-                          className="form-input"
-                          required
-                        />
-                      </Field>
-                      <Field label="Last Name" htmlFor="last-name">
-                        <Input
-                          id="last-name"
-                          name="lastName"
-                          autoComplete="family-name"
-                          value={fields.lastName}
-                          onChange={(e) =>
-                            updateField('lastName', e.target.value)
                           }
                           className="form-input"
                           required

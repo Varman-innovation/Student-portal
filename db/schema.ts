@@ -10,7 +10,6 @@ export const webinarRegistrations = sqliteTable(
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     firstName: text('first_name').notNull(),
-    lastName: text('last_name').notNull(),
     email: text('email').notNull(),
     phone: text('phone').notNull(),
     upstreamStudentId: text('upstream_student_id').notNull(),

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "02d1ed79-6b04-49fe-a6d9-fdf5b65318fe",
+  "id": "178ea3ee-9845-4d1b-a3bf-46de91f08fc5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "webinar_registrations": {
@@ -16,13 +16,6 @@
         },
         "first_name": {
           "name": "first_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "last_name": {
-          "name": "last_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

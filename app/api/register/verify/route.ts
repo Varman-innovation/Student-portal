@@ -46,12 +46,11 @@ export async function POST(request: Request) {
       await database
         .prepare(`
         INSERT INTO webinar_registrations
-          (first_name, last_name, email, phone, upstream_student_id, source, campaign, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          (first_name, email, phone, upstream_student_id, source, campaign, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
         .bind(
           registration.firstName,
-          registration.lastName,
           registration.email,
           registration.phone,
           studentId,

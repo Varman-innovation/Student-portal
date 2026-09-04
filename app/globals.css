@@ -31,25 +31,25 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #f6f8f1;
-  --foreground: #0d162a;
+  --background: #f7f4ed;
+  --foreground: #0a192b;
   --card: #ffffff;
-  --card-foreground: #0d162a;
+  --card-foreground: #0a192b;
   --popover: #ffffff;
-  --popover-foreground: #0d162a;
-  --primary: #0d162a;
+  --popover-foreground: #0a192b;
+  --primary: #0a192b;
   --primary-foreground: #ffffff;
-  --secondary: #edf1e6;
-  --secondary-foreground: #0d162a;
-  --muted: #edf1e6;
-  --muted-foreground: #5f685c;
-  --border: #dce2d6;
-  --input: #dce2d6;
-  --ring: #6f9400;
-  --ink: #0d162a;
-  --accent: #c8f63b;
-  --accent-strong: #dcff69;
-  --accent-deep: #587a00;
+  --secondary: #f0ebe0;
+  --secondary-foreground: #0a192b;
+  --muted: #f0ebe0;
+  --muted-foreground: #655f55;
+  --border: #e3dccd;
+  --input: #e3dccd;
+  --ring: #d99616;
+  --ink: #0a192b;
+  --accent: #f6b93b;
+  --accent-strong: #ffca57;
+  --accent-deep: #a56500;
 }
 
 * {
@@ -84,12 +84,12 @@ input {
   position: relative;
   font-size: 0.875rem;
   font-weight: 750;
-  color: color-mix(in srgb, var(--ink) 66%, transparent);
+  color: rgba(255, 255, 255, 0.68);
   transition: color 180ms ease;
 }
 
 .nav-link:hover {
-  color: var(--ink);
+  color: #ffffff;
 }
 .nav-link::after {
   position: absolute;
@@ -135,7 +135,7 @@ input {
 }
 .form-input:focus-visible {
   border-color: var(--accent);
-  --tw-ring-color: rgba(200, 246, 59, 0.45);
+  --tw-ring-color: rgba(246, 185, 59, 0.45);
 }
 
 .path-card {
