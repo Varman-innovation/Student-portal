@@ -2,17 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  CalendarDays,
-  Check,
-  Clock3,
-  Sparkles,
-  RefreshCcw,
-  ShieldCheck,
-  X
-} from "lucide-react";
-
+import { ArrowRight, CalendarDays, Check, Clock3, RefreshCcw } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { StudentFooter } from "@/components/student-footer";
 
@@ -30,7 +20,7 @@ type Challenge = {
 };
 
 function formatEventDate(webinar: PublicWebinar | null) {
-  if (!webinar) return "Live session opening soon";
+  if (!webinar) return "New live session opening soon";
 
   return new Intl.DateTimeFormat("en-IN", {
     weekday: "short",
@@ -39,73 +29,67 @@ function formatEventDate(webinar: PublicWebinar | null) {
     hour: "numeric",
     minute: "2-digit",
     timeZone: "Asia/Kolkata",
-    timeZoneName: "short"
+    timeZoneName: "short",
   }).format(new Date(webinar.starts_at));
 }
 
 export default function HomePage() {
   const router = useRouter();
 
-  const inputs = useRef<Array<HTMLInputElement | null>>([]);
-
+  // Registration
   const [mobile, setMobile] = useState("");
-  const [webinar, setWebinar] = useState<PublicWebinar | null>(null);
 
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  // OTP
+  const inputs = useRef<Array<HTMLInputElement | null>>([]);
   const [digits, setDigits] = useState(["", "", "", ""]);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
 
+  // Common
   const [step, setStep] = useState<"mobile" | "otp">("mobile");
-
+  const [webinar, setWebinar] = useState<PublicWebinar | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/session")
-      .then(async (response) => {
-        if (!response.ok) return;
-
+    fetch("/api/session").then(async (response) => {
+      if (response.ok) {
         const data = await response.json();
 
         if (data.nextPath) {
           router.replace(data.nextPath);
         }
-      })
-      .catch(() => undefined);
+      }
+    });
 
     fetch("/api/webinars/public/next")
-      .then((response) =>
-        response.ok ? response.json() : null
-      )
-      .then((data) => {
-        setWebinar(data?.webinar ?? null);
-      })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => setWebinar(data?.webinar ?? null))
       .catch(() => undefined);
 
-    const savedChallenge = sessionStorage.getItem("login_challenge");
+    // If an existing challenge is available, show OTP step.
+    const raw = sessionStorage.getItem("login_challenge");
 
-    if (savedChallenge) {
+    if (raw) {
       try {
-        const parsed = JSON.parse(savedChallenge);
+        const savedChallenge = JSON.parse(raw);
 
-        setChallenge(parsed);
-        setMobile(parsed.rawMobile ?? "");
-        setStep("otp");
-
-        requestAnimationFrame(() => {
-          inputs.current[0]?.focus();
-        });
+        if (savedChallenge?.studentId) {
+          setChallenge(savedChallenge);
+          setMobile(savedChallenge.rawMobile ?? "");
+          setStep("otp");
+        }
       } catch {
         sessionStorage.removeItem("login_challenge");
       }
     }
   }, [router]);
 
-  // -----------------------------
-  // MOBILE NUMBER SUBMIT
-  // -----------------------------
+  // =========================
+  // MOBILE REGISTRATION
+  // =========================
 
-  async function submitMobile(event: React.FormEvent) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
 
     setError("");
@@ -118,7 +102,7 @@ export default function HomePage() {
       const response = await fetch("/api/auth/request", {
         method: "POST",
         headers: {
-          "content-type": "application/json"
+          "content-type": "application/json",
         },
         body: JSON.stringify({
           mobile,
@@ -129,8 +113,8 @@ export default function HomePage() {
           campaign:
             params.get("utm_campaign") ??
             params.get("campaign") ??
-            undefined
-        })
+            undefined,
+        }),
       });
 
       const data = await response.json();
@@ -143,7 +127,7 @@ export default function HomePage() {
 
       const nextChallenge = {
         ...data,
-        rawMobile: mobile
+        rawMobile: mobile,
       };
 
       sessionStorage.setItem(
@@ -155,6 +139,7 @@ export default function HomePage() {
       setDigits(["", "", "", ""]);
       setStep("otp");
 
+      // Focus first OTP input after UI changes
       requestAnimationFrame(() => {
         inputs.current[0]?.focus();
       });
@@ -169,17 +154,14 @@ export default function HomePage() {
     }
   }
 
-  // -----------------------------
+  // =========================
   // OTP INPUT
-  // -----------------------------
+  // =========================
 
-  function changeDigit(index: number, value: string) {
-    const digit = value
-      .replace(/\D/g, "")
-      .slice(-1);
+  function change(index: number, value: string) {
+    const digit = value.replace(/\D/g, "").slice(-1);
 
     const next = [...digits];
-
     next[index] = digit;
 
     setDigits(next);
@@ -189,7 +171,7 @@ export default function HomePage() {
     }
   }
 
-  function handleKeyDown(
+  function keyDown(
     index: number,
     event: React.KeyboardEvent<HTMLInputElement>
   ) {
@@ -202,7 +184,7 @@ export default function HomePage() {
     }
   }
 
-  function handlePaste(event: React.ClipboardEvent) {
+  function paste(event: React.ClipboardEvent) {
     const code = event.clipboardData
       .getData("text")
       .replace(/\D/g, "")
@@ -217,9 +199,9 @@ export default function HomePage() {
     }
   }
 
-  // -----------------------------
+  // =========================
   // VERIFY OTP
-  // -----------------------------
+  // =========================
 
   async function verifyOtp(event: React.FormEvent) {
     event.preventDefault();
@@ -234,41 +216,36 @@ export default function HomePage() {
       const response = await fetch("/api/auth/verify", {
         method: "POST",
         headers: {
-          "content-type": "application/json"
+          "content-type": "application/json",
         },
         body: JSON.stringify({
           studentId: challenge.studentId,
-          code: digits.join("")
-        })
+          code: digits.join(""),
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error ?? "Verification failed"
-        );
+        setError(data.error ?? "Verification failed");
+        return;
       }
 
       sessionStorage.removeItem("login_challenge");
 
       router.replace(data.nextPath);
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Verification failed"
-      );
+    } catch {
+      setError("Unable to verify the code. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  // -----------------------------
+  // =========================
   // RESEND OTP
-  // -----------------------------
+  // =========================
 
-  async function resendOtp() {
+  async function resend() {
     if (!challenge?.rawMobile) {
       changeNumber();
       return;
@@ -282,11 +259,11 @@ export default function HomePage() {
       const response = await fetch("/api/auth/request", {
         method: "POST",
         headers: {
-          "content-type": "application/json"
+          "content-type": "application/json",
         },
         body: JSON.stringify({
-          mobile: challenge.rawMobile
-        })
+          mobile: challenge.rawMobile,
+        }),
       });
 
       const data = await response.json();
@@ -299,7 +276,7 @@ export default function HomePage() {
 
       const nextChallenge = {
         ...data,
-        rawMobile: challenge.rawMobile
+        rawMobile: challenge.rawMobile,
       };
 
       sessionStorage.setItem(
@@ -309,7 +286,7 @@ export default function HomePage() {
 
       setChallenge(nextChallenge);
       setDigits(["", "", "", ""]);
-      setNotice("New code sent.");
+      setNotice("A new verification code is ready.");
 
       requestAnimationFrame(() => {
         inputs.current[0]?.focus();
@@ -325,261 +302,210 @@ export default function HomePage() {
     }
   }
 
-  // -----------------------------
-  // CHANGE NUMBER
-  // -----------------------------
+  // =========================
+  // CHANGE MOBILE NUMBER
+  // =========================
 
   function changeNumber() {
-    sessionStorage.removeItem("login_challenge");
-
+    setStep("mobile");
     setChallenge(null);
     setDigits(["", "", "", ""]);
     setError("");
     setNotice("");
-    setStep("mobile");
 
-    requestAnimationFrame(() => {
-      document.getElementById("mobile")?.focus();
-    });
+    sessionStorage.removeItem("login_challenge");
   }
 
   return (
-    <main className="webinar-page">
+    <main>
       <BrandHeader />
 
-      {/* =========================
-          HERO
-      ========================== */}
-
-      <section className="webinar-hero">
-        <div className="webinar-container">
-
-          {/* LEFT CONTENT */}
-
-          <div className="webinar-content">
-
-            <div className="webinar-badge">
-              <span className="live-dot" />
-              FREE LIVE WEBINAR
-            </div>
-
-            <h1 className="webinar-title">
-              Build.
-              <br />
-              Launch.
-              <br />
-              <span>Grow.</span>
-            </h1>
-
-            <p className="webinar-description">
-              Turn your idea into something real with
-              startup thinking, AI and practical guidance.
-            </p>
-
-            <div className="webinar-points">
-
-              <div>
-                <Check size={17} />
-                <span>Startup mindset</span>
-              </div>
-
-              <div>
-                <Check size={17} />
-                <span>AI-powered ideas</span>
-              </div>
-
-              <div>
-                <Check size={17} />
-                <span>Real-world growth</span>
-              </div>
-
-            </div>
-
-            {/* EVENT INFO */}
-
-            <div className="webinar-event">
-
-              <div className="event-icon">
-                <CalendarDays size={20} />
-              </div>
-
-              <div className="event-info">
-                <strong>
-                  {webinar?.title ??
-                    "Startup & AI Masterclass"}
-                </strong>
-
-                <span>
-                  {formatEventDate(webinar)}
-                </span>
-              </div>
-
-              <div className="event-duration">
-                <Clock3 size={15} />
-                {webinar?.duration_minutes ?? 60} min
-              </div>
-
-            </div>
-
-            {/* DESKTOP CTA */}
-
-            <div className="desktop-register-hint">
-              <Sparkles size={16} />
-              Reserve your free seat →
-            </div>
-
+      <section className="hero-shell">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            Free live student masterclass
           </div>
 
-          {/* =========================
-              REGISTER CARD
-          ========================== */}
+          <h1>Build your startup idea.</h1>
 
-          <div className="webinar-register-area">
+          <p>
+            Validate it, shape your MVP, and leave with a clear
+            next step—in 60 minutes.
+          </p>
 
-            {step === "mobile" ? (
+          <div
+            className="hero-points"
+            aria-label="Masterclass highlights"
+          >
+            <span className="hero-pill">
+              <Check size={15} /> Live
+            </span>
 
-              <div className="webinar-card">
+            <span className="hero-pill">
+              <Check size={15} /> Practical
+            </span>
 
-                <div className="card-top">
+            <span className="hero-pill">
+              <Check size={15} /> Free
+            </span>
+          </div>
 
-                  <div className="card-icon">
-                    <Sparkles size={20} />
-                  </div>
+          <div className="event-strip">
+            <CalendarDays size={21} />
 
-                  <span className="card-label">
-                    STEP 1 OF 2
-                  </span>
+            <div>
+              <strong>
+                {webinar?.title ??
+                  "Student Entrepreneurship Masterclass"}
+              </strong>
 
+              <span>{formatEventDate(webinar)}</span>
+            </div>
+
+            <div>
+              <Clock3 size={17} />{" "}
+              {webinar?.duration_minutes ?? 60} minutes
+            </div>
+          </div>
+        </div>
+
+        <div className="login-panel">
+          <div className="glass-card">
+
+            {/* =====================================
+                STEP 1 - MOBILE NUMBER
+            ===================================== */}
+
+            {step === "mobile" && (
+              <>
+                <div className="eyebrow">
+                  Free student seat
                 </div>
 
-                <h2>
-                  Join the webinar.
-                </h2>
+                <h2>Register</h2>
 
-                <p className="card-description">
-                  Register free and get instant access.
+                <p className="subcopy">
+                  Enter your mobile number to continue.
                 </p>
 
-                <form onSubmit={submitMobile}>
-
+                <form onSubmit={submit}>
                   <div className="field">
-
                     <label htmlFor="mobile">
-                      Mobile number
+                      Mobile number{" "}
+                      <span className="required">*</span>
                     </label>
 
-                    <div className="input-wrap webinar-input-wrap">
-
-                      <span className="prefix">
-                        +91
-                      </span>
+                    <div className="input-wrap">
+                      <span className="prefix">+91</span>
 
                       <input
                         id="mobile"
                         className="input"
                         inputMode="numeric"
                         autoComplete="tel"
+                        aria-describedby="mobile-help"
                         placeholder="98765 43210"
                         value={mobile}
                         onChange={(event) =>
-                          setMobile(
-                            event.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 10)
-                          )
+                          setMobile(event.target.value)
                         }
-                        maxLength={10}
+                        maxLength={14}
                         required
                       />
-
                     </div>
 
+                    <span
+                      id="mobile-help"
+                      className="field-help"
+                    >
+                      For verification and session updates.
+                    </span>
                   </div>
 
-                  {error ? (
-                    <p
-                      className="error"
-                      role="alert"
-                    >
+                  {error && (
+                    <p className="error" role="alert">
                       {error}
                     </p>
-                  ) : null}
+                  )}
 
                   <button
-                    type="submit"
-                    className="webinar-primary-btn"
-                    disabled={
-                      loading ||
-                      mobile.replace(/\D/g, "").length !== 10
-                    }
+                    className="primary-btn full-btn"
+                    disabled={loading}
                   >
                     {loading ? (
-                      "Sending..."
+                      "Sending…"
                     ) : (
                       <>
-                        Get Free Access
-                        <ArrowRight size={19} />
+                        Get my code{" "}
+                        <ArrowRight size={18} />
                       </>
                     )}
                   </button>
 
+                  <p className="consent-copy">
+                    By continuing, you accept the{" "}
+                    <a href="/terms">Terms</a> and{" "}
+                    <a href="/privacy">
+                      Privacy Policy
+                    </a>
+                    .
+                  </p>
                 </form>
+              </>
+            )}
 
-                <div className="card-trust">
+            {/* =====================================
+                STEP 2 - OTP VERIFICATION
+            ===================================== */}
 
-                  <ShieldCheck size={15} />
-
-                  <span>
-                    Free registration · Secure verification
-                  </span>
-
+            {step === "otp" && (
+              <>
+                <div className="eyebrow">
+                  Verify number
                 </div>
 
-              </div>
+                <h2>Enter the code</h2>
 
-            ) : (
-
-              <div className="webinar-card">
-
-                <div className="card-top">
-
-                  <div className="card-icon">
-                    <ShieldCheck size={20} />
-                  </div>
-
-                  <span className="card-label">
-                    STEP 2 OF 2
-                  </span>
-
-                </div>
-
-                <h2>
-                  Verify your number.
-                </h2>
-
-                <p className="card-description">
-                  Enter the 4-digit code sent to
+                <p className="subcopy">
+                  Sent to{" "}
                   <strong>
-                    {" "}
-                    {challenge?.mobile ?? mobile}
-                  </strong>
-                  .
+                    {challenge?.mobile ?? "your mobile"}
+                  </strong>{" "}
+                  ·{" "}
+                  <button
+                    type="button"
+                    onClick={changeNumber}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      padding: 0,
+                      color: "inherit",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      font: "inherit",
+                    }}
+                  >
+                    Change
+                  </button>
                 </p>
 
-                {challenge?.pilotCode ? (
+                {challenge?.pilotCode && (
                   <div className="demo-note">
                     Access code:{" "}
                     <strong>{challenge.pilotCode}</strong>
                   </div>
-                ) : null}
+                )}
 
                 <form onSubmit={verifyOtp}>
-
                   <div
-                    className="otp-grid"
-                    onPaste={handlePaste}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(4, 1fr)",
+                      gap: 10,
+                    }}
+                    onPaste={paste}
                   >
-
                     {digits.map((digit, index) => (
                       <input
                         key={index}
@@ -590,7 +516,17 @@ export default function HomePage() {
                         aria-label={`OTP digit ${
                           index + 1
                         }`}
-                        className="otp-input"
+                        className="input"
+                        style={{
+                          height: 64,
+                          textAlign: "center",
+                          fontSize: 26,
+                          fontWeight: 750,
+                          border:
+                            "1px solid var(--line)",
+                          borderRadius: 14,
+                          background: "white",
+                        }}
                         inputMode="numeric"
                         autoComplete={
                           index === 0
@@ -599,43 +535,35 @@ export default function HomePage() {
                         }
                         value={digit}
                         onChange={(event) =>
-                          changeDigit(
+                          change(
                             index,
                             event.target.value
                           )
                         }
                         onKeyDown={(event) =>
-                          handleKeyDown(
-                            index,
-                            event
-                          )
+                          keyDown(index, event)
                         }
                       />
                     ))}
-
                   </div>
 
-                  {error ? (
-                    <p
-                      className="error"
-                      role="alert"
-                    >
+                  {error && (
+                    <p className="error" role="alert">
                       {error}
                     </p>
-                  ) : null}
+                  )}
 
-                  {notice ? (
+                  {notice && (
                     <p
                       className="success"
                       role="status"
                     >
                       {notice}
                     </p>
-                  ) : null}
+                  )}
 
                   <button
-                    type="submit"
-                    className="webinar-primary-btn"
+                    className="primary-btn full-btn"
                     disabled={
                       loading ||
                       digits.some(
@@ -644,201 +572,32 @@ export default function HomePage() {
                     }
                   >
                     {loading ? (
-                      "Verifying..."
+                      "Verifying…"
                     ) : (
                       <>
-                        Continue
-                        <ArrowRight size={19} />
+                        Continue{" "}
+                        <ArrowRight size={18} />
                       </>
                     )}
                   </button>
 
-                  <div className="otp-actions">
-
-                    <button
-                      type="button"
-                      onClick={resendOtp}
-                      disabled={loading}
-                      className="otp-link"
-                    >
-                      <RefreshCcw size={15} />
-                      Resend code
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={changeNumber}
-                      disabled={loading}
-                      className="otp-link"
-                    >
-                      <X size={15} />
-                      Change number
-                    </button>
-
-                  </div>
-
+                  <button
+                    type="button"
+                    className="secondary-btn full-btn"
+                    style={{ marginTop: 12 }}
+                    onClick={resend}
+                    disabled={loading}
+                  >
+                    <RefreshCcw size={16} /> Resend code
+                  </button>
                 </form>
-
-              </div>
-
+              </>
             )}
-
           </div>
-
         </div>
-      </section>
-
-      {/* =========================
-          THREE STEPS
-      ========================== */}
-
-      <section className="webinar-steps-section">
-
-        <div className="webinar-container">
-
-          <div className="section-heading">
-
-            <span>YOUR JOURNEY</span>
-
-            <h2>
-              From idea to action.
-            </h2>
-
-          </div>
-
-          <div className="webinar-steps">
-
-            <div className="step-card">
-
-              <div className="step-number">
-                01
-              </div>
-
-              <h3>Discover</h3>
-
-              <p>
-                Find the right idea and opportunity.
-              </p>
-
-            </div>
-
-            <div className="step-card">
-
-              <div className="step-number">
-                02
-              </div>
-
-              <h3>Build</h3>
-
-              <p>
-                Use AI and practical tools to create.
-              </p>
-
-            </div>
-
-            <div className="step-card">
-
-              <div className="step-number">
-                03
-              </div>
-
-              <h3>Launch</h3>
-
-              <p>
-                Turn your learning into your next move.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* =========================
-          TOPICS
-      ========================== */}
-
-      <section className="webinar-topics-section">
-
-        <div className="webinar-container">
-
-          <div className="topics-content">
-
-            <div className="section-heading">
-
-              <span>WHAT YOU'LL EXPLORE</span>
-
-              <h2>
-                Learn. Build. Move forward.
-              </h2>
-
-            </div>
-
-            <div className="topic-list">
-
-              <div className="topic-item">
-                <span>01</span>
-                Startup Thinking
-              </div>
-
-              <div className="topic-item">
-                <span>02</span>
-                AI for Building
-              </div>
-
-              <div className="topic-item">
-                <span>03</span>
-                Idea Validation
-              </div>
-
-              <div className="topic-item">
-                <span>04</span>
-                Career & Growth
-              </div>
-
-            </div>
-
-          </div>
-
-          <div className="bottom-cta">
-
-            <div>
-
-              <span>
-                FREE LIVE WEBINAR
-              </span>
-
-              <h2>
-                Your next step starts here.
-              </h2>
-
-            </div>
-
-            <button
-              className="bottom-cta-btn"
-              onClick={() => {
-                document
-                  .getElementById("mobile")
-                  ?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                  });
-              }}
-            >
-              Reserve My Seat
-              <ArrowRight size={18} />
-            </button>
-
-          </div>
-
-        </div>
-
       </section>
 
       <StudentFooter />
-
     </main>
   );
 }
